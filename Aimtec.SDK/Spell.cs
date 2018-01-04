@@ -1,4 +1,4 @@
-﻿namespace Aimtec.SDK
+namespace Aimtec.SDK
 {
     using System;
 
@@ -46,6 +46,12 @@
         #endregion
 
         #region Public Properties
+
+        /// <summary>
+        ///     Gets the spell ammo.
+        /// </summary>
+        /// <value>The Ammo.</value>>
+        public int Ammo => Player.SpellBook.GetSpell(this.Slot).Ammo;
 
         /// <summary>
         ///     Gets or sets the name of the charged buff.
@@ -108,6 +114,24 @@
         public bool Collision { get; set; }
 
         /// <summary>
+        ///     Gets the spell cooldown.
+        /// </summary>
+        /// <value>The Cooldown.</value>>
+        public float Cooldown => Player.SpellBook.GetSpell(this.Slot).Cooldown;
+
+        /// <summary>
+        ///     Gets the spell cooldownEnd.
+        /// </summary>
+        /// <value>The CooldownEnd.</value>>
+        public float CooldownEnd => Player.SpellBook.GetSpell(this.Slot).CooldownEnd;
+
+        /// <summary>
+        ///     Gets the spell cost.
+        /// </summary>
+        /// <value>The Cost.</value>>
+        public float Cost => Player.SpellBook.GetSpell(this.Slot).Cost;
+
+        /// <summary>
         ///     Gets or sets the delay.
         /// </summary>
         /// <value>The delay.</value>
@@ -159,6 +183,18 @@
         public int LastCastAttemptT { get; set; }
 
         /// <summary>
+        ///     Gets the spell level.
+        /// </summary>
+        /// <value>The Level.</value>>
+        public int Level => Player.SpellBook.GetSpell(this.Slot).Level;
+
+        /// <summary>
+        ///     Gets the spell name.
+        /// </summary>
+        /// <value>The Name.</value>>
+        public string Name => Player.SpellBook.GetSpell(this.Slot).Name;
+
+        /// <summary>
         ///     Gets or sets the range.
         /// </summary>
         /// <value>The range.</value>
@@ -202,6 +238,18 @@
         /// </summary>
         /// <value>The speed.</value>
         public float Speed { get; set; }
+
+        /// <summary>
+        ///     Gets the spelldata (basic Aimtec.Spell.SpellData).
+        /// </summary>
+        /// <value>The SpellData.</value>>
+        public SpellData SpellData => Player.SpellBook.GetSpell(this.Slot).SpellData;
+
+        /// <summary>
+        ///     Gets the spell togglestate.
+        /// </summary>
+        /// <value>The ToggleState.</value>>
+        public int ToggleState => Player.SpellBook.GetSpell(this.Slot).ToggleState;
 
         /// <summary>
         ///     Gets or sets the type.

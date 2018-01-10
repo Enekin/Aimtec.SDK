@@ -147,7 +147,7 @@
     <Compile Include="Util\WindowsMessages.cs" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Damage\Data\7.24.json" />
+    <EmbeddedResource Include="Damage\Data\8.1.json" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup />

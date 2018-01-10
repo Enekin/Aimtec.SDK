@@ -2494,6 +2494,20 @@
 				}
 			},
 			{
+				"Stage": "Empowered",
+				"SpellData": {
+					"SpellEffectType": "None",
+					"DamageType": "Magical",
+					"Damages": [40.0, 60.0, 80.0, 100.0, 120.0],
+					"BonusDamages": [{
+						"DamageType": "Magical",
+						"DamagePercentages": [0.55, 0.55, 0.55, 0.55, 0.55],
+						"ScalingTarget": "Source",
+						"ScalingType": "AbilityPoints"
+					}]
+				}
+			},
+			{
 				"Stage": "SecondForm",
 				"SpellData": {
 					"SpellEffectType": "None",
@@ -2502,6 +2516,21 @@
 					"BonusDamages": [{
 						"DamageType": "Magical",
 						"DamagePercentages": [0.3, 0.3, 0.3],
+						"ScalingTarget": "Source",
+						"ScalingType": "AbilityPoints",
+						"ScaleSlot": "R"
+					}]
+				}
+			},
+			{
+				"Stage": "SecondFormEmpowered",
+				"SpellData": {
+					"SpellEffectType": "None",
+					"DamageType": "Magical",
+					"Damages": [100.0, 140.0, 180.0],
+					"BonusDamages": [{
+						"DamageType": "Magical",
+						"DamagePercentages": [0.7, 0.7, 0.7],
 						"ScalingTarget": "Source",
 						"ScalingType": "AbilityPoints",
 						"ScaleSlot": "R"
@@ -7216,7 +7245,8 @@
 						},
 						{
 							"DamageType": "Physical",
-							"Damages": [25.0, 35.0, 45.0, 55.0, 65.0]
+							"Damages": [30.0, 50.0, 70.0, 90.0, 110.0],
+							"ScalingTarget": "Source"
 						}
 					]
 				}

@@ -81,6 +81,11 @@
         Empowered,
 
         /// <summary>
+        ///     The second form empowered damage stage.
+        /// </summary>
+        SecondFormEmpowered,
+
+        /// <summary>
         ///     The effect damage stage.
         /// </summary>
         Effect,

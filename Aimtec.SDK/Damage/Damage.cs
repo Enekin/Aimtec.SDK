@@ -66,8 +66,9 @@ namespace Aimtec.SDK.Damage
             double physicalAmount,
             double magicalAmount)
         {
-            return source.CalculatePhysicalDamage(target, physicalAmount) +
-                   source.CalculateMagicDamage(target, magicalAmount);
+            return
+                source.CalculatePhysicalDamage(target, physicalAmount) +
+                source.CalculateMagicDamage(target, magicalAmount);
         }
 
         /// <summary>
@@ -122,15 +123,6 @@ namespace Aimtec.SDK.Damage
                     dmgReduce *= 0.9;
                 }
 
-                /*
-                if (hero != null &&
-                    hero.IsUsingMastery(hero.GetFerocityPage(MasteryId.Ferocity.FreshBlood)) &&
-                    !hero.HasBuff("Mastery6121"))
-                {
-                    dmgPhysical += 10 + hero.Level;
-                }
-                */
-
                 switch (targetHero.ChampionName)
                 {
                     case "Fizz":
@@ -145,8 +137,6 @@ namespace Aimtec.SDK.Damage
 
             dmgPhysical = source.CalculatePhysicalDamage(target, dmgPhysical);
             dmgMagical = source.CalculateMagicDamage(target, dmgMagical);
-
-            dmgPhysical += source.GetPassiveFlatMod(target);
 
             switch (targetHero?.ChampionName)
             {
@@ -191,8 +181,8 @@ namespace Aimtec.SDK.Damage
                 return 0;
             }
 
-            var spellLevel =
-                source.SpellBook.GetSpell(spellData.ScaleSlot != SpellSlot.Unknown ? spellData.ScaleSlot : spellSlot).Level;
+            var scaleSlot = spellData.ScaleSlot != SpellSlot.Unknown ? spellData.ScaleSlot : spellSlot;
+            var spellLevel = source.SpellBook.GetSpell(scaleSlot).Level;
             if (spellLevel == 0)
             {
                 return 0;
@@ -218,8 +208,8 @@ namespace Aimtec.SDK.Damage
 
                 if (!string.IsNullOrEmpty(spellData.ScalingBuff))
                 {
-                    var buffCount = (spellData.ScalingBuffTarget == DamageScalingTarget.Source ? source : target)
-                        .GetRealBuffCount(spellData.ScalingBuff);
+                    var scalingTarget = spellData.ScalingBuffTarget == DamageScalingTarget.Source ? source : target;
+                    var buffCount = scalingTarget.GetRealBuffCount(spellData.ScalingBuff);
 
                     dmgBase = buffCount > 0 ? dmgBase * (buffCount + spellData.ScalingBuffOffset) : 0;
                 }
@@ -234,8 +224,9 @@ namespace Aimtec.SDK.Damage
                         spellData.BonusDamageOnMinion.Count - 1)];
                 }
 
-                if (spellData.IsApplyOnHit || spellData.IsModifiedDamage
-                    || spellData.SpellEffectType == SpellEffectType.Single)
+                if (spellData.IsApplyOnHit ||
+                    spellData.IsModifiedDamage ||
+                    spellData.SpellEffectType == SpellEffectType.Single)
                 {
                     alreadyAdd1 = true;
                 }
@@ -248,14 +239,13 @@ namespace Aimtec.SDK.Damage
                 foreach (var bonusDmg in spellData.BonusDamages)
                 {
                     var dmg = source.GetBonusSpellDamage(target, bonusDmg, spellLevel - 1);
-
                     if (dmg <= 0)
                     {
                         continue;
                     }
 
-                    if (!alreadyAdd1 && (spellData.IsModifiedDamage
-                        || spellData.SpellEffectType == SpellEffectType.Single))
+                    if (!alreadyAdd1 &&
+                        (spellData.IsModifiedDamage || spellData.SpellEffectType == SpellEffectType.Single))
                     {
                         alreadyAdd1 = true;
                     }
@@ -274,8 +264,7 @@ namespace Aimtec.SDK.Damage
 
                 if (spellData.ScalePerTargetMissHealth > 0)
                 {
-                    totalDamage *= (target.MaxHealth - target.Health) / target.MaxHealth
-                        * spellData.ScalePerTargetMissHealth + 1;
+                    totalDamage *= (target.MaxHealth - target.Health) / target.MaxHealth * spellData.ScalePerTargetMissHealth + 1;
                 }
 
                 if (target is Obj_AI_Minion)
@@ -296,33 +285,22 @@ namespace Aimtec.SDK.Damage
                     }
                 }
 
-                if (spellData.IsApplyOnHit || spellData.IsModifiedDamage)
-                {
-                    var itemDamage = DamageItems.ComputeItemDamages(source, target);
-                    dmgPassive += itemDamage.PhysicalDamage + itemDamage.MagicalDamage;
-                }
-
-                /*
-                var sorcery = source.GetFerocityPage(MasteryId.Ferocity.Sorcery);
-                if (sorcery != null && source.IsUsingMastery(sorcery))
-                {
-                    totalDamage *= 1 + new[] { 0.4, 0.8, 1.2, 1.6, 2 }[sorcery.Points - 1] / 100;
-                }
-                */
-
                 if (spellData.IsModifiedDamage)
-				{
-					if (targetHero != null &&
-						targetHero.HasItem(ItemId.NinjaTabi))
-					{
-						dmgReduce *= 0.9;
-					}
-				}
+                {
+                    if (targetHero != null &&
+                        targetHero.HasItem(ItemId.NinjaTabi))
+                    {
+                        dmgReduce *= 0.9;
+                    }
+                }
             }
 
-            if (spellData.IsApplyOnHit || spellData.IsModifiedDamage)
+            if (spellData.IsApplyOnHit ||
+                spellData.IsModifiedDamage)
             {
-                dmgPassive += source.GetPassiveFlatMod(target);
+                var itemDamage = DamageItems.ComputeItemDamages(source, target);
+                totalDamage += source.CalculateDamage(target, DamageType.Physical, itemDamage.PhysicalDamage);
+                totalDamage += source.CalculateDamage(target, DamageType.Magical, itemDamage.MagicalDamage);
             }
 
             if (source.ChampionName == "Sejuani" &&
@@ -349,6 +327,8 @@ namespace Aimtec.SDK.Damage
                         dmgPassive += 400;
                         break;
                 }
+
+                dmgPassive = source.CalculateDamage(target, DamageType.Magical, dmgPassive);
             }
 
             return Math.Max(Math.Floor(totalDamage * dmgReduce + dmgPassive), 0);
@@ -435,7 +415,6 @@ namespace Aimtec.SDK.Damage
                     break;
             }
 
-            // Penetration can't reduce armor below 0.
             var armor = target.Armor;
             var bonusArmor = target.BonusArmor;
 
@@ -444,59 +423,16 @@ namespace Aimtec.SDK.Damage
             {
                 value = 2 - 100 / (100 - armor);
             }
-            else if (armor * armorPenetrationPercent - bonusArmor * (1 - bonusArmorPenetrationMod)
-                - armorPenetrationFlat < 0)
+            else if (armor * armorPenetrationPercent - bonusArmor * (1 - bonusArmorPenetrationMod) - armorPenetrationFlat < 0)
             {
                 value = 1;
             }
             else
             {
-                value = 100 / (100 + armor * armorPenetrationPercent - bonusArmor * (1 - bonusArmorPenetrationMod)
-                    - armorPenetrationFlat);
+                value = 100 / (100 + armor * armorPenetrationPercent - bonusArmor * (1 - bonusArmorPenetrationMod) - armorPenetrationFlat);
             }
 
             return Math.Max(Math.Floor(source.GetPassivePercentMod(target, value, DamageType.Physical) * amount), 0);
-        }
-
-        /// <summary>
-        ///     Gets the physical passive flat mod.
-        /// </summary>
-        /// <param name="source">The source.</param>
-        /// <param name="target">The target.</param>
-        /// <returns>System.Double.</returns>
-        private static double GetPassiveFlatMod(this Obj_AI_Base source, Obj_AI_Base target)
-        {
-            var amount = 0d;
-
-            /*
-            var targetHero = target as Obj_AI_Hero;
-            if (targetHero != null)
-            {
-                var toughSkin = targetHero.GetResolvePage(MasteryId.Resolve.ToughSkin);
-                if (toughSkin != null &&
-                    targetHero.IsUsingMastery(toughSkin) &&
-                    (source is Obj_AI_Hero || source is Obj_AI_Minion && source.Team == GameObjectTeam.Neutral))
-                {
-                    amount -= 2;
-                }
-            }
-
-            var hero = source as Obj_AI_Hero;
-            if (hero != null)
-            {
-                var targetMinion = target as Obj_AI_Minion;
-                if (targetMinion != null)
-                {
-                    var savagery = hero.GetCunningPage(MasteryId.Cunning.Savagery);
-                    if (savagery != null && hero.IsUsingMastery(savagery))
-                    {
-                        amount += new[] { 1, 2, 3, 4, 5 }[savagery.Points - 1];
-                    }
-                }
-            }
-            */
-
-            return amount;
         }
 
         /// <summary>
@@ -550,23 +486,6 @@ namespace Aimtec.SDK.Damage
 
             if (hero != null)
             {
-                /*
-                var doubleEdgedSword = hero.GetFerocityPage(MasteryId.Ferocity.DoubleEdgedSword);
-                if (doubleEdgedSword != null &&
-                    hero.IsUsingMastery(doubleEdgedSword))
-                {
-                    amount *= 1 + 3 / 100;
-                }
-
-                var greenfathersgift = hero.GetCunningPage(MasteryId.Cunning.GreenFathersGift);
-                if (greenfathersgift != null &&
-                    hero.IsUsingMastery(greenfathersgift) &&
-                    hero.HasBuff("Mastery6341"))
-                {
-                    amount *= target.Health * 3 / 100;
-                }
-                */
-
                 if (minionTarget != null)
                 {
                     if (source.HasBuff("barontarget") &&
@@ -585,66 +504,23 @@ namespace Aimtec.SDK.Damage
 
                 if (targetHero != null)
                 {
-                    /*
-                    var battleTrance = hero.GetFerocityPage(MasteryId.Ferocity.BattleTrance);
-                    if (battleTrance != null &&
-                        hero.IsUsingMastery(battleTrance))
+                    if (damageType == DamageType.Physical &&
+                        hero.MaxHealth < targetHero.MaxHealth)
                     {
-                        amount *= 1 + 3 / 100;
-                    }
-
-                    var assassin = hero.GetCunningPage(MasteryId.Cunning.Assassin);
-                    if (assassin != null &&
-                        hero.IsUsingMastery(assassin) &&
-                        source.CountAllyHeroesInRange(800f) == 0)
-                    {
-                        amount *= 1.02;
-                    }
-
-                    var merciless = hero.GetCunningPage(MasteryId.Cunning.Merciless);
-                    if (merciless != null &&
-                        hero.IsUsingMastery(merciless) &&
-                        targetHero.HealthPercent() < 40)
-                    {
-                        amount *= 1 + new[] { 0.6, 1.2, 1.8, 2.4, 3 }[merciless.Points - 1] / 100;
-                    }
-
-                    var exposeweakness = targetHero.GetBuff("ExposeWeaknessDebuff");
-                    if (exposeweakness != null)
-                    {
-                        var caster = exposeweakness.Caster;
-                        if (caster != null &&
-                            hero.Team == caster.Team &&
-                            hero.NetworkId != caster.NetworkId)
-                        {
-                            amount *= 1 + 3 / 100;
-                        }
-                    }
-
-                    var doubleEdgedSword2 = targetHero.GetFerocityPage(MasteryId.Ferocity.DoubleEdgedSword);
-                    if (doubleEdgedSword2 != null &&
-                        targetHero.IsUsingMastery(doubleEdgedSword2))
-                    {
-                        amount *= 1 + 1.5 / 100;
-                    }
-                    */
-
-                    if (hero.MaxHealth < targetHero.MaxHealth && damageType == DamageType.Physical)
-                    {
-                        var healthDiff = Math.Min(targetHero.MaxHealth - hero.MaxHealth, 1000);
+                        var healthDiff = Math.Min(targetHero.MaxHealth - hero.MaxHealth, 2000);
                         if (hero.HasItem(ItemId.LordDominiksRegards))
                         {
-                            amount *= 1 + healthDiff / 5000;
+                            amount *= 1 + healthDiff / 10000;
                         }
                         else if (hero.HasItem(ItemId.GiantSlayer))
                         {
-                            amount *= 1 + healthDiff / 10000;
+                            amount *= 1 + healthDiff / 20000;
                         }
                     }
 
                     var damageReductions = DamageReductions.ComputeReductions(hero, targetHero, damageType);
                     amount *= damageReductions.PercentDamageReduction;
-                    amount += damageReductions.FlatDamageReduction;
+                    amount -= damageReductions.FlatDamageReduction;
                 }
             }
 
